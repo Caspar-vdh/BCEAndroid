@@ -21,6 +21,10 @@ class GridViewModel : ViewModel() {
         return List(9) { index -> CellState(id = index, initialValue = CellValue.EMPTY) }
     }
 
+    fun resetGame() {
+        _cells.forEach { it.value = CellValue.EMPTY }
+    }
+
     companion object {
         private const val N_ROWS = 3
         private const val N_COLUMNS = 3
