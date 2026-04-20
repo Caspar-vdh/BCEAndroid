@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.dandykong.bceandroid"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.dandykong.bceandroid"
@@ -38,7 +38,6 @@ android {
     }
 }
 
-kotlin
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
@@ -46,7 +45,6 @@ kotlin {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -58,7 +56,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(files(rootProject.file("libs/ButterCheeseAndEggs-1.0-SNAPSHOT.jar")))
+    implementation(files("libs/ButterCheeseAndEggs-1.0-SNAPSHOT.jar"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
