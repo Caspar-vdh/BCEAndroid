@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">BCE Android</string>
+
+    <string name="started_human_player">The game has started. You go first.</string>
+    <string name="started_cpu_player">The game has started. The computer goes first.</string>
+
+    <string name="finished_no_winner">The game has finished. Nobody won.</string>
+    <string name="finished_human_player">The game has finished. You won!</string>
+    <string name="finished_cpu_player">The game has finished. The computer won…</string>
 </resources>

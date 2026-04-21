@@ -1,9 +1,12 @@
 package com.dandykong.bceandroid.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
+import com.dandykong.bceandroid.R
 import com.dandykong.bceandroid.state.CellState
 import com.dandykong.bceandroid.state.CellValue
+import com.dandykong.butter.game.GameEventListener
 import com.dandykong.butter.game.GameFacade
 import com.dandykong.butter.game.GameGridListener
 import com.dandykong.butter.game.GameState
@@ -11,24 +14,32 @@ import com.dandykong.butter.game.GameStateListener
 import com.dandykong.butter.game.grid.Grid
 import com.dandykong.logger.ButterLogger
 import com.dandykong.training.player.Player
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class GridViewModel : ViewModel() {
+
+    private val _currentMessage = MutableStateFlow<UserMessage?>(null)
+    var currentMessage = _currentMessage.asStateFlow()
+
     private val _cells = getCellStates().toMutableStateList()
     private val log = object : ButterLogger {
+
         override fun info(var1: String) {
-            TODO("Not yet implemented")
+            Log.i(TAG, var1)
         }
 
         override fun info(var1: String, var2: Any) {
-            TODO("Not yet implemented")
+            Log.i(TAG, "$var1: $var2")
         }
 
         override fun info(var1: String, var2: Any, var3: Any) {
-            TODO("Not yet implemented")
+            Log.i(TAG, "$var1: $var2, $var3")
         }
 
         override fun info(var1: String, vararg var2: Any) {
-            TODO("Not yet implemented")
+            Log.i(TAG, "$var1: ${var2.joinToString()}")
         }
 
     }
@@ -55,6 +66,26 @@ class GridViewModel : ViewModel() {
                 cellState.value = cellValue
             }
         }
+
+        gameFacade.gameEventListener = object : GameEventListener {
+            override fun onGameStarted(firstPlayerType: Player.Type) {
+                val id = System.currentTimeMillis()
+                _currentMessage.value = when (firstPlayerType) {
+                    Player.Type.HUMAN_PLAYER -> UserMessage(id, R.string.started_human_player)
+                    Player.Type.CPU_PLAYER -> UserMessage(id, R.string.started_cpu_player)
+                }
+            }
+
+            override fun onGameTerminated(winningPlayerType: Player.Type?) {
+                val id = System.currentTimeMillis()
+                _currentMessage.value = when (winningPlayerType) {
+                    null -> UserMessage(id, R.string.finished_no_winner)
+                    Player.Type.HUMAN_PLAYER -> UserMessage(id, R.string.finished_human_player)
+                    Player.Type.CPU_PLAYER -> UserMessage(id, R.string.finished_cpu_player)
+                }
+            }
+        }
+
     }
 
     val cells: List<CellState>
@@ -62,9 +93,8 @@ class GridViewModel : ViewModel() {
 
     fun updateCellState(cellState: CellState) {
         val index = _cells.indexOf(cellState)
-        if (index != -1) {
-            cellState.value = CellValue.CROSS
-        }
+        val rowAndColumn = indexToRowAndColumn(index)
+        gameFacade.processMove(rowAndColumn.first, rowAndColumn.second)
     }
 
     private fun getCellStates(): List<CellState> {
@@ -73,9 +103,23 @@ class GridViewModel : ViewModel() {
 
     fun resetGame() {
         _cells.forEach { it.value = CellValue.EMPTY }
+        gameFacade.startGame()
     }
 
+    fun userMessageShown(messageIds: Long) {
+        _currentMessage.update { currentMessage ->
+            if (currentMessage?.id == messageIds) {
+                null
+            }
+            else {
+                currentMessage
+            }
+        }
+    }
+
+
     companion object {
+        private const val TAG = "GridViewModel"
         private const val N_ROWS = 3
         private const val N_COLUMNS = 3
 
@@ -85,5 +129,13 @@ class GridViewModel : ViewModel() {
 
             return row * N_ROWS + column
         }
+
+        fun indexToRowAndColumn(index: Int): Pair<Int, Int> {
+            require(index in 0..<N_ROWS * N_COLUMNS) { "Index out of range: $index" }
+
+            return Pair(index / N_ROWS, index % N_COLUMNS)
+        }
     }
 }
+
+data class UserMessage(val id: Long, val messageRes: Int)
