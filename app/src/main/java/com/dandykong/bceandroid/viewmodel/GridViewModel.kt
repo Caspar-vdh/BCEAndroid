@@ -86,6 +86,7 @@ class GridViewModel : ViewModel() {
             }
         }
 
+        resetGame()
     }
 
     val cells: List<CellState>
