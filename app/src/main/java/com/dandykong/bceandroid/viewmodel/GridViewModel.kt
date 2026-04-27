@@ -6,12 +6,12 @@ import androidx.lifecycle.ViewModel
 import com.dandykong.bceandroid.R
 import com.dandykong.bceandroid.state.CellState
 import com.dandykong.bceandroid.state.CellValue
-import com.dandykong.butter.game.GameEventListener
-import com.dandykong.butter.game.GameFacade
-import com.dandykong.butter.game.GameGridListener
-import com.dandykong.butter.game.GameState
-import com.dandykong.butter.game.GameStateListener
-import com.dandykong.butter.game.grid.Grid
+import com.dandykong.butter.shared.game.GameEventListener
+import com.dandykong.butter.shared.game.GameGridListener
+import com.dandykong.butter.shared.game.GameState
+import com.dandykong.butter.shared.game.GameStateListener
+import com.dandykong.butter.shared.game.grid.Grid
+import com.dandykong.butter.tictactoe.game.GameFacade
 import com.dandykong.logger.ButterLogger
 import com.dandykong.training.player.Player
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +23,7 @@ class GridViewModel : ViewModel() {
     private val _currentMessage = MutableStateFlow<UserMessage?>(null)
     var currentMessage = _currentMessage.asStateFlow()
 
-    private val _cells = getCellStates().toMutableStateList()
+    private val _cells: List<CellState>
     private val log = object : ButterLogger {
 
         override fun info(var1: String) {
@@ -47,6 +47,8 @@ class GridViewModel : ViewModel() {
     var expectUserInput = false
 
     init {
+        _cells = getCellStates().toMutableStateList()
+
         gameFacade.gameStateListener = GameStateListener { state ->
             expectUserInput = when (state) {
                 GameState.WAITING_FOR_PLAYER -> true
@@ -54,8 +56,8 @@ class GridViewModel : ViewModel() {
             }
         }
 
-        gameFacade.gameGridListener = object : GameGridListener {
-            override fun onGridUpdated(grid: Grid, row: Int, column: Int) {
+        gameFacade.gameGridListener = object : GameGridListener<Int> {
+            override fun onGridUpdated(grid: Grid<Int>, row: Int, column: Int) {
                 val cell = grid.getCell(row, column)
                 val cellValue = when (cell) {
                     Player.PLAYER_1 -> CellValue.NOUGHT
@@ -85,8 +87,6 @@ class GridViewModel : ViewModel() {
                 }
             }
         }
-
-        resetGame()
     }
 
     val cells: List<CellState>
